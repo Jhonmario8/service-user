@@ -4,8 +4,6 @@ import com.pragma.plazoleta.domain.api.IPasswordServicePort;
 import com.pragma.plazoleta.domain.exception.DomainException;
 
 import lombok.*;
-
-
 import java.time.LocalDate;
 import java.time.Period;
 

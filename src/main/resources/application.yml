@@ -16,5 +16,5 @@ spring:
             dialect: org.hibernate.dialect.MySQLDialect
   security:
     jwt:
-      secret: MySecureJWTSecretKeyFor2024ProjectPlazoletaWithStrongEncryption123!@#
+      secret: ${PRAGMA_JWT_KEY}
       expiration: 3600000
