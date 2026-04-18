@@ -18,16 +18,16 @@ public class SecurityConfig {
     private final CustomAuthenticationFilter customAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers(HttpMethod.POST, "/users/owner").hasRole("ADMIN")
-//                        .requestMatchers(HttpMethod.POST, "/users/employee").hasRole("OWNER")
-//                        .requestMatchers(HttpMethod.POST, "/users/client").permitAll()
-//                        .requestMatchers(HttpMethod.GET, "/users/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/users/owner").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/users/employee").hasRole("OWNER")
+                        .requestMatchers(HttpMethod.POST, "/users/client").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users/**").authenticated()
                         .anyRequest().permitAll()
                 );
 

@@ -2,7 +2,6 @@ package com.pragma.plazoleta.infrastructure.output.security.adapter;
 
 import com.pragma.plazoleta.domain.api.ITokenServicePort;
 import com.pragma.plazoleta.domain.constants.DomainConstants;
-import com.pragma.plazoleta.domain.model.TokenData;
 import com.pragma.plazoleta.domain.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

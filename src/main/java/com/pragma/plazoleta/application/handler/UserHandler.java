@@ -1,11 +1,10 @@
 package com.pragma.plazoleta.application.handler;
 
-import com.pragma.plazoleta.application.dto.AuthDTO;
+
 import com.pragma.plazoleta.application.dto.UserDTO;
-import com.pragma.plazoleta.application.mapper.IAuthMapper;
 import com.pragma.plazoleta.application.mapper.IUserMapper;
 import com.pragma.plazoleta.domain.api.IUserServicePort;
-import com.pragma.plazoleta.domain.model.Auth;
+import com.pragma.plazoleta.domain.model.User;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +14,7 @@ public class UserHandler implements IUserHandler {
 
     private final IUserServicePort userServicePort;
     private final IUserMapper mapper;
-    private final IAuthMapper authMapper;
+
 
     @Override
     public void createAdmin(UserDTO dto) {
@@ -39,7 +38,9 @@ public class UserHandler implements IUserHandler {
 
     @Override
     public UserDTO getUserById(Long id) {
-        return mapper.toUserDTO(userServicePort.getUserById(id));
+        User userById = userServicePort.getUserById(id);
+        userById.setPassword(null);
+        return mapper.toUserDTO(userById);
     }
 
 

@@ -17,7 +17,7 @@ public class UserController {
 
     @PostMapping("/owner")
     public ResponseEntity<Void> CreateOwner(@Valid @RequestBody UserDTO dto) {
-            userHandler.createAdmin(dto);
+            userHandler.creteOwner(dto);
             return  new ResponseEntity<>(HttpStatus.CREATED);
     }
 

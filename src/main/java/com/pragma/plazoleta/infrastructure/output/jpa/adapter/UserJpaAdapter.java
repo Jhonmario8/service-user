@@ -1,6 +1,6 @@
 package com.pragma.plazoleta.infrastructure.output.jpa.adapter;
 
-import com.pragma.plazoleta.domain.model.Role;
+
 import com.pragma.plazoleta.domain.model.User;
 import com.pragma.plazoleta.domain.spi.IUserPersistencePort;
 import com.pragma.plazoleta.infrastructure.exception.InfrastructureException;
@@ -40,5 +40,11 @@ public class UserJpaAdapter implements IUserPersistencePort {
     @Override
     public Optional<User> findUserByEmail(String email) {
         return userRepository.findByEmail(email).map(mapper::toUser);
+    }
+
+
+    @Override
+    public Optional<User> findUserByCellphone(String cellphone) {
+        return userRepository.findByPhoneNumber(cellphone).map(mapper::toUser);
     }
 }
