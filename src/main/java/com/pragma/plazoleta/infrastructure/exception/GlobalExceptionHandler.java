@@ -1,6 +1,9 @@
 package com.pragma.plazoleta.infrastructure.exception;
 
+import com.pragma.plazoleta.domain.exception.ConflictException;
 import com.pragma.plazoleta.domain.exception.DomainException;
+import com.pragma.plazoleta.domain.exception.NotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,18 +20,31 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ex.getHttpStatus())
                 .body(new ErrorResponse(ex.getMessage(), ex.getHttpStatus().value()));
     }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND.value()));
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> handleConflictException(ConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(ex.getMessage(), HttpStatus.CONFLICT.value()));
+    }
+
     @ExceptionHandler(DomainException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(DomainException ex) {
-        return ResponseEntity.status(ex.getHttpStatus())
-                .body(new ErrorResponse(ex.getMessage(), ex.getHttpStatus().value()));
+    public ResponseEntity<ErrorResponse> handleDomainException(DomainException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST.value()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
-            errors.put(error.getField(),
-                    error.getDefaultMessage()));
+                errors.put(error.getField(),
+                        error.getDefaultMessage()));
         return ResponseEntity.badRequest().body(new ErrorResponse("Datos invalidos", 400, errors));
 
     }
