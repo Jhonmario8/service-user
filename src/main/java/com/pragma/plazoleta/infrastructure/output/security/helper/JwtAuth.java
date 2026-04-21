@@ -15,7 +15,7 @@ import java.util.Map;
 public class JwtAuth implements Authentication {
 
     private final Map<String, Object> claims;
-
+    private final String token;
 
     @Override
     @NonNull
@@ -31,7 +31,7 @@ public class JwtAuth implements Authentication {
 
     @Override
     public Object getCredentials() {
-        return null;
+        return token;
     }
 
     @Override

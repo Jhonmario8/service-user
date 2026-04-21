@@ -10,6 +10,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,@NonNull HttpServletResponse response,@NonNull FilterChain filterChain) throws ServletException, IOException {
         String token = extractToken(request);
         if (token == null) {
             filterChain.doFilter(request,response);
@@ -43,24 +44,24 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             Claims claims = tokenServiceAdapter.validateToken(token);
 
             if (claims.getExpiration().before(new Date())){
-                setResponseProperties(response, HttpServletResponse.SC_UNAUTHORIZED, InfrastructureConstants.MSG_TOKEN_EXPIRED, request);
+                setResponseProperties(response, InfrastructureConstants.MSG_TOKEN_EXPIRED, request);
                 return;
             }
 
-            SecurityContextHolder.getContext().setAuthentication(new JwtAuth(claims));
+            SecurityContextHolder.getContext().setAuthentication(new JwtAuth(claims, token));
         }catch (Exception e){
-            setResponseProperties(response, HttpServletResponse.SC_UNAUTHORIZED, InfrastructureConstants.MSG_TOKEN_INVALID, request);
+            setResponseProperties(response, InfrastructureConstants.MSG_TOKEN_INVALID, request);
             return;
         }
         filterChain.doFilter(request,response);
     }
-    private void setResponseProperties(HttpServletResponse response, int status, String message, HttpServletRequest request) throws IOException {
+    private void setResponseProperties(HttpServletResponse response, String message, HttpServletRequest request) throws IOException {
         Map<String, Object> payload = new HashMap<>();
-        payload.put(InfrastructureConstants.KEY_STATUS, status);
+        payload.put(InfrastructureConstants.KEY_STATUS, HttpServletResponse.SC_UNAUTHORIZED);
         payload.put(InfrastructureConstants.KEY_MESSAGE, message);
         payload.put(InfrastructureConstants.KEY_PATH, request != null ? request.getRequestURI() : InfrastructureConstants.EMPTY_STRING);
 
-        response.setStatus(status);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(InfrastructureConstants.UTF_8);
 
