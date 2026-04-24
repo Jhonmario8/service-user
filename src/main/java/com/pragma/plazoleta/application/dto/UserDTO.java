@@ -2,6 +2,7 @@ package com.pragma.plazoleta.application.dto;
 
 import com.pragma.plazoleta.application.constants.ApplicationConstants;
 import com.pragma.plazoleta.domain.model.Role;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -39,6 +40,9 @@ public class UserDTO {
 
     @NotBlank(message = ApplicationConstants.PASSWORD_CANNOT_BE_BLANK)
     private String password;
+
+    @Nullable()
+    private Long restaurantId;
 
     private Role role;
 }

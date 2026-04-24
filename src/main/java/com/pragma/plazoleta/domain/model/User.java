@@ -25,6 +25,7 @@ public class User {
     private LocalDate birthDate;
     private String email;
     private String password;
+    private Long restaurantId;
     private Role role;
 
     public void encodePassword(IPasswordServicePort passwordServicePort) {
