@@ -29,7 +29,6 @@ public class AuthUseCase implements IAuthServicePort {
             auth.setToken(tokenServicePort.generateToken(user));
             auth.setPassword(null);
             auth.setEmail(null);
-            auth.setRole(user.getRole());
             return auth;
         } else {
             throw new ConflictException(DomainConstants.MSG_INVALID_CREDENTIALS);
