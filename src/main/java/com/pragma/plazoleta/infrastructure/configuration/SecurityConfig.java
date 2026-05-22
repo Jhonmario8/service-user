@@ -28,7 +28,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/users/employee").hasRole("OWNER")
                         .requestMatchers(HttpMethod.POST, "/users/client").permitAll()
                         .requestMatchers(HttpMethod.GET, "/users/**").authenticated()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 );
 
         http.addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
