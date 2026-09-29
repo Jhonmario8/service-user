@@ -3,8 +3,7 @@ package com.pragma.plazoleta.application.usecase;
 import com.pragma.plazoleta.domain.api.IPasswordServicePort;
 import com.pragma.plazoleta.domain.api.ITokenServicePort;
 import com.pragma.plazoleta.domain.constants.DomainConstants;
-import com.pragma.plazoleta.domain.exception.ConflictException;
-import com.pragma.plazoleta.domain.exception.NotFoundException;
+import com.pragma.plazoleta.domain.exception.UnauthorizedException;
 import com.pragma.plazoleta.domain.model.Auth;
 import com.pragma.plazoleta.domain.model.Role;
 import com.pragma.plazoleta.domain.model.User;
@@ -20,6 +19,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
@@ -66,7 +66,7 @@ class AuthUseCaseTest {
     }
 
     @Test
-    @DisplayName("con contraseña incorrecta lanza ConflictException y no genera token")
+    @DisplayName("con contraseña incorrecta falla con 'Invalid credentials' y no genera token")
     void loginWithWrongPassword() {
         // given
         when(userPersistencePort.findUserByEmail(EMAIL)).thenReturn(Optional.of(storedUser()));
@@ -74,22 +74,40 @@ class AuthUseCaseTest {
 
         // when / then
         assertThatThrownBy(() -> authUseCase.login(new Auth(EMAIL, "otra", null)))
-                .isInstanceOf(ConflictException.class)
+                .isInstanceOf(UnauthorizedException.class)
                 .hasMessage(DomainConstants.MSG_INVALID_CREDENTIALS);
         verify(tokenServicePort, never()).generateToken(any());
     }
 
     @Test
-    @DisplayName("con email no registrado lanza NotFoundException y no compara contraseñas")
+    @DisplayName("con email no registrado falla con 'Invalid credentials' y no genera token")
     void loginWithUnknownEmail() {
         // given
         when(userPersistencePort.findUserByEmail(EMAIL)).thenReturn(Optional.empty());
 
         // when / then
         assertThatThrownBy(() -> authUseCase.login(new Auth(EMAIL, RAW_PASSWORD, null)))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage(DomainConstants.MSG_USER_NOT_FOUND);
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessage(DomainConstants.MSG_INVALID_CREDENTIALS);
         verify(passwordServicePort, never()).matches(anyString(), anyString());
         verify(tokenServicePort, never()).generateToken(any());
+    }
+
+    @Test
+    @DisplayName("usuario inexistente y contraseña incorrecta producen la misma excepción y mensaje")
+    void unknownEmailAndWrongPasswordAreIndistinguishable() {
+        // given
+        when(userPersistencePort.findUserByEmail("nadie@correo.com")).thenReturn(Optional.empty());
+        when(userPersistencePort.findUserByEmail(EMAIL)).thenReturn(Optional.of(storedUser()));
+        when(passwordServicePort.matches("otra", HASHED_PASSWORD)).thenReturn(false);
+
+        // when
+        Throwable unknownEmail = catchThrowable(() -> authUseCase.login(new Auth("nadie@correo.com", RAW_PASSWORD, null)));
+        Throwable wrongPassword = catchThrowable(() -> authUseCase.login(new Auth(EMAIL, "otra", null)));
+
+        // then
+        assertThat(unknownEmail).isExactlyInstanceOf(UnauthorizedException.class);
+        assertThat(wrongPassword).isExactlyInstanceOf(UnauthorizedException.class);
+        assertThat(unknownEmail).hasMessage(wrongPassword.getMessage());
     }
 }
