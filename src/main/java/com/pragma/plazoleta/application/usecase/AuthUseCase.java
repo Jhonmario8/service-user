@@ -4,8 +4,7 @@ import com.pragma.plazoleta.domain.api.IAuthServicePort;
 import com.pragma.plazoleta.domain.api.IPasswordServicePort;
 import com.pragma.plazoleta.domain.api.ITokenServicePort;
 import com.pragma.plazoleta.domain.constants.DomainConstants;
-import com.pragma.plazoleta.domain.exception.ConflictException;
-import com.pragma.plazoleta.domain.exception.NotFoundException;
+import com.pragma.plazoleta.domain.exception.UnauthorizedException;
 import com.pragma.plazoleta.domain.model.Auth;
 import com.pragma.plazoleta.domain.model.User;
 import com.pragma.plazoleta.domain.spi.IUserPersistencePort;
@@ -23,7 +22,7 @@ public class AuthUseCase implements IAuthServicePort {
     @Override
     public Auth login(Auth auth){
         User user = userPersistencePort.findUserByEmail(auth.getEmail())
-                .orElseThrow(() -> new NotFoundException(DomainConstants.MSG_USER_NOT_FOUND));
+                .orElseThrow(() -> new UnauthorizedException(DomainConstants.MSG_INVALID_CREDENTIALS));
 
         if (passwordServicePort.matches(auth.getPassword(), user.getPassword())) {
             auth.setToken(tokenServicePort.generateToken(user));
@@ -31,7 +30,7 @@ public class AuthUseCase implements IAuthServicePort {
             auth.setEmail(null);
             return auth;
         } else {
-            throw new ConflictException(DomainConstants.MSG_INVALID_CREDENTIALS);
+            throw new UnauthorizedException(DomainConstants.MSG_INVALID_CREDENTIALS);
         }
     }
 }
