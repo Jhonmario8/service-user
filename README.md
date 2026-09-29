@@ -14,7 +14,7 @@ Repositorio: [Jhonmario8/service-user](https://github.com/Jhonmario8/service-use
 - [Configuración](#configuración)
 - [Ejecución en local con MySQL](#ejecución-en-local-con-mysql)
 - [Tests](#tests)
-- [Limitaciones conocidas](#limitaciones-conocidas)
+- [Deuda técnica conocida](#deuda-técnica-conocida)
 
 ## Tecnologías
 
@@ -71,7 +71,7 @@ El JWT se firma con HS256. Lleva los claims `user_id` y `role_name`, el email co
   - Documento: solo dígitos, mínimo 3
   - Edad mínima de 18 años, solo para propietarios (y para `createAdmin`, que no está expuesto)
 - Unicidad: el email y el teléfono no pueden estar registrados.
-- Login: si el email no existe responde 404 "User not found"; si la contraseña no coincide responde 409 "Invalid credentials".
+- Login: si el email no existe o la contraseña no coincide, responde en ambos casos 401 con el mismo mensaje, "Invalid credentials", para no revelar qué emails están registrados.
 
 ## Arquitectura
 
@@ -135,14 +135,25 @@ Son tests unitarios con JUnit 5 y Mockito, sin contexto de Spring ni base de dat
 | Clase | Qué cubre |
 |---|---|
 | `UserUseCaseTest` | Registro de propietario (rol OWNER, contraseña codificada, mayor de 18 años con caso límite), empleado y cliente (rol correcto, sin validación de edad), formato de teléfono y documento, email y teléfono duplicados, búsqueda por id. |
-| `AuthUseCaseTest` | Login con credenciales válidas, contraseña incorrecta y email inexistente. |
+| `AuthUseCaseTest` | Login con credenciales válidas; contraseña incorrecta y email inexistente devuelven la misma excepción (`UnauthorizedException`) y el mismo mensaje. |
+| `GlobalExceptionHandlerTest` | `UnauthorizedException` se traduce a 401 con su mensaje. |
 | `UserDTOValidationTest` | Anotaciones de Bean Validation del DTO (email inválido, campos vacíos, fecha nula) con un `Validator` de Jakarta, sin Spring. |
 
 Las reglas de acceso por rol están en `SecurityConfig` y no las cubren estos tests unitarios.
 
-## Limitaciones conocidas
+## Deuda técnica conocida
 
+Hallazgos de las rondas de tests que todavía no se han corregido:
+
+**Validaciones y textos**
 - `POST /auth/login` no usa `@Valid`, así que las anotaciones `@NotBlank` de `AuthDTO` no se aplican.
-- El login responde distinto para email inexistente (404) y contraseña incorrecta (409). Esto permite saber qué emails están registrados.
 - La contraseña solo exige no estar vacía.
-- El paquete base es `com.pragma.plazoleta` y el método de registro de propietarios se llama `creteOwner`. Son nombres heredados que no se han renombrado.
+- Si se valida la edad y `birthDate` es nula, `User.validate` lanza `NullPointerException`.
+- Los mensajes de `User.validate` están escritos directamente en el código en lugar de usar `DomainConstants`, y uno no coincide: el código dice "Invalid identification number" y la constante `MSG_INVALID_DOCUMENT` dice "Invalid document number".
+- `UserDTO` acepta `restaurantId` y `role` desde el cliente. El rol se sobrescribe en el caso de uso, pero `restaurantId` se guarda tal cual, también en el registro público de clientes.
+
+**Configuración inicial**
+- No hay endpoint para crear el primer ADMIN ni carga inicial de la tabla `roles`, así que hay que hacerlo a mano en MySQL.
+
+**Nombres**
+- El paquete base es `com.pragma.plazoleta` y el método de registro de propietarios se llama `creteOwner`. Son nombres heredados que no se han cambiado.
